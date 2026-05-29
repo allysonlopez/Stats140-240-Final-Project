@@ -6,7 +6,7 @@ from the Coffee Quality Institute (CQI).
 ## Team
 - Allyson Lopez
 - Xinyu Zhang
-- Member 3
+- Arnav Kanekar
 
 
 ## Research Questions
