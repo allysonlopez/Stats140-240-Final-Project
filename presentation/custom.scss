@@ -1,0 +1,33 @@
+/*-- scss:defaults --*/
+
+// Smaller base font (reveal's default root is ~40px). Lower this number to
+// shrink ALL slide text at once.
+$presentation-font-size-root: 28px;
+
+// Tame the heading sizes so they aren't oversized
+$presentation-h1-font-size: 1.8em;
+$presentation-h2-font-size: 1.25em;
+$presentation-h3-font-size: 1.05em;
+
+// Times New Roman everywhere
+$presentation-heading-font: "Times New Roman", Times, serif;
+$font-family-sans-serif:   "Times New Roman", Times, serif;
+
+
+/*-- scss:rules --*/
+
+// Belt-and-suspenders: force the serif font on all slide text
+.reveal,
+.reveal p,
+.reveal li,
+.reveal td,
+.reveal th,
+.reveal h1,
+.reveal h2,
+.reveal h3,
+.reveal h4 {
+  font-family: "Times New Roman", Times, serif;
+}
+
+// Slightly tighter tables
+.reveal table { font-size: 0.85em; }
