@@ -1,0 +1,116 @@
+---
+title: "Research Question 2"
+format: pdf
+---
+
+```{r}
+library(tidyverse)
+library(MASS)
+library(caret)
+library(psych)
+library(ggrepel)
+library(MLmetrics)
+coffee <- read_csv("../data/coffee_clean.csv", show_col_types = FALSE)
+```
+
+\newpage
+
+##
+
+```{r}
+summary(coffee)
+
+head(coffee)
+```
+
+```{r}
+coffee_counts <- coffee %>% 
+  group_by(country_of_origin) %>% 
+  summarise(n = n(), mean_points = mean(total_cup_points, na.rm=TRUE))
+
+ggplot(coffee_counts, aes(x = reorder(country_of_origin, n), y=n, fill=mean_points)) +
+  geom_col() +
+  coord_flip()
+```
+
+```{r}
+cupping_vars <- c("aroma", "flavor", "aftertaste", "acidity",
+                  "body", "balance", "uniformity", "clean_cup",
+                  "sweetness", "cupper_points")
+```
+
+
+\newpage
+
+## MANOVA
+
+```{r}
+# Fit MANOVA
+Y <- as.matrix(coffee[, cupping_vars])
+manova_fit <- manova(Y ~ country_of_origin, data = coffee)
+
+# Summary — default test is Pillai's Trace (most robust)
+summary(manova_fit, test = "Pillai")
+
+# Also check Wilks' Lambda
+summary(manova_fit, test = "Wilks")
+
+# Univariate follow-up: which variables drive the effect?
+summary.aov(manova_fit)
+```
+
+\newpage
+
+## LDA
+
+```{r}
+coffee_clean <- coffee %>%
+  dplyr::select(country_of_origin, all_of(cupping_vars)) %>%
+  drop_na() %>%
+  group_by(country_of_origin) %>%
+  filter(n() >= 20) %>%
+  ungroup() %>%
+  mutate(country_of_origin = factor(country_of_origin))
+
+# Fit LDA
+lda_fit <- lda(country_of_origin ~ ., data = coffee_clean)
+
+# Proportion of between-group variance explained by each discriminant function
+lda_fit$svd^2 / sum(lda_fit$svd^2)
+
+# Plot the first two discriminant functions
+lda_pred <- predict(lda_fit)
+
+lda_df <- data.frame(
+  LD1 = lda_pred$x[, 1],
+  LD2 = lda_pred$x[, 2],
+  country = coffee_clean$country_of_origin  # <-- match here
+)
+
+ggplot(lda_df, aes(x = LD1, y = LD2, color = country)) +
+  geom_point(alpha = 0.6, size = 2) +
+  stat_ellipse(level = 0.68) +
+  labs(title = "LDA: Coffee Origins in Discriminant Space",
+       x = "LD1", y = "LD2") +
+  theme_minimal()
+```
+
+```{r}
+coffee_clean <- coffee_clean %>%
+  mutate(country_of_origin = factor(make.names(country_of_origin)))
+
+set.seed(42)
+ctrl <- trainControl(method = "cv", number = 10,
+                     classProbs = TRUE,
+                     summaryFunction = multiClassSummary)
+
+lda_caret <- train(country_of_origin ~ .,
+                   data = coffee_clean,
+                   method = "lda",
+                   trControl = ctrl,
+                   preProcess = c("center", "scale"))
+
+print(lda_caret)
+lda_caret$results  # accuracy, kappa, etc.
+```
+
