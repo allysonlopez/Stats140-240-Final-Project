@@ -49,13 +49,10 @@ cupping_vars <- c("aroma", "flavor", "aftertaste", "acidity",
 Y <- as.matrix(coffee[, cupping_vars])
 manova_fit <- manova(Y ~ country_of_origin, data = coffee)
 
-# Summary — default test is Pillai's Trace (most robust)
 summary(manova_fit, test = "Pillai")
 
-# Also check Wilks' Lambda
 summary(manova_fit, test = "Wilks")
 
-# Univariate follow-up: which variables drive the effect?
 summary.aov(manova_fit)
 ```
 
@@ -75,16 +72,14 @@ coffee_clean <- coffee %>%
 # Fit LDA
 lda_fit <- lda(country_of_origin ~ ., data = coffee_clean)
 
-# Proportion of between-group variance explained by each discriminant function
 lda_fit$svd^2 / sum(lda_fit$svd^2)
 
-# Plot the first two discriminant functions
 lda_pred <- predict(lda_fit)
 
 lda_df <- data.frame(
   LD1 = lda_pred$x[, 1],
   LD2 = lda_pred$x[, 2],
-  country = coffee_clean$country_of_origin  # <-- match here
+  country = coffee_clean$country_of_origin
 )
 
 ggplot(lda_df, aes(x = LD1, y = LD2, color = country)) +
@@ -111,6 +106,6 @@ lda_caret <- train(country_of_origin ~ .,
                    preProcess = c("center", "scale"))
 
 print(lda_caret)
-lda_caret$results  # accuracy, kappa, etc.
+lda_caret$results
 ```
 
