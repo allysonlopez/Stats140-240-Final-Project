@@ -60,7 +60,7 @@ sensory attributes.
 
 :::: {.columns}
 ::: {.column width="50%"}
-![](figures/01_country_counts.png){width="100%"}
+![](../figures/01_country_counts.png){width="100%"}
 :::
 ::: {.column width="50%"}
 ![](figures/02_score_dist.png){width="100%"}

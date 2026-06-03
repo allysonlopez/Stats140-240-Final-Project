@@ -18,36 +18,41 @@ editor: source
 
 ## Motivation
 
-- Specialty coffee is graded by certified Q-graders on several sensory
-  attributes: **aroma, flavor, aftertaste, acidity, body, balance**.
-- These attribute scores are highly correlated, raising a multivariate
-  question: how many **distinct dimensions of quality** are there?
+- Specialty coffee is scored by certified Q-graders on six sensory attributes:
+  **aroma, flavor, aftertaste, acidity, body, balance**.
+- These expert scores directly affect a coffee's price and market value.
+- We use multivariate methods to understand the structure behind the scores and
+  how coffees relate to one another.
 
 ## Research Questions
 
 | | Question | Methods |
 |---|----------|---------|
 | **RQ1** | What latent dimensions underlie cupping scores? | PCA, factor analysis |
-| **RQ2** | Do origins differ; can origin be predicted? | MANOVA, LDA |
+| **RQ2** | Do coffee origins differ in their sensory profiles? | MANOVA, LDA |
 | **RQ3** | Do clusters match known categories? | cluster analysis |
 
 
 # Data
 
 ## The Data
-
-- **Source:** Coffee Quality Institute (CQI); *Coffee Quality Database* mirror.
-- **Scope:** ~1,300 Arabica samples — sensory scores plus metadata (country,
-  region, variety, processing method, altitude).
+  
+- **Source:** Coffee Quality Institute (CQI), via the public *Coffee Quality
+  Database*.
+- **Observations:** Arabica coffee samples evaluated by professional cuppers.
+- **Main variables:** six sensory attributes scored on a 0–10 scale:
+  aroma, flavor, aftertaste, acidity, body, and balance.
+- **Metadata:** country of origin, region, variety, processing method, and altitude.
 
 ## Data Cleaning
 
-- Kept **11 countries** with at least 30 samples.
-- Dropped **uniformity, clean cup, sweetness** — near-constant at 10 (almost no
-  variance).
-- Set implausible altitude values to missing; removed one corrupt record and rows with missing sensory scores.
+- Removed one corrupt record and rows with missing sensory scores.
+- Kept countries with at least 30 samples to avoid extremely small origin groups.
+- Removed uniformity, clean cup, and sweetness because they were almost always 10
+  and contributed little variation.
 
-Final sample: **1,099 coffees across 11 origins**.
+Result: **1,099 Arabica coffees across 11 countries**, analyzed using six
+sensory attributes.
 
 # Exploratory Analysis
 
@@ -55,10 +60,10 @@ Final sample: **1,099 coffees across 11 origins**.
 
 :::: {.columns}
 ::: {.column width="50%"}
-![](figures/01_country_counts.png){width="100%"}
+![](../figures/01_country_counts.png){width="100%"}
 :::
 ::: {.column width="50%"}
-![](figures/02_score_dist.png){width="100%"}
+![](../figures/02_score_dist.png){width="100%"}
 :::
 ::::
 
@@ -69,7 +74,7 @@ Final sample: **1,099 coffees across 11 origins**.
 
 :::: {.columns}
 ::: {.column width="55%"}
-![](figures/03_corr_heatmap.png){width="100%"}
+![](../figures/03_corr_heatmap.png){width="100%"}
 :::
 ::: {.column width="45%"}
 - All six attributes are positively correlated (r between 0.54 and 0.85).
@@ -98,12 +103,13 @@ principal component captures most of the shared variation among the scores.
 
 <br>
 
-- PC1 explains about **73%** of the total variation.
-- Only PC1 exceeds the Kaiser threshold ($\lambda > 1$).
-- The six attributes mainly reflect **one common quality dimension**.
+- PC1 explains **72.6%** of the total variation.
+- Only PC1 has an eigenvalue greater than 1.
+- This suggests that the six sensory attributes are largely driven by one shared
+  dimension: **overall coffee quality**.
 :::
 ::: {.column width="56%"}
-![](figures/05_pca_scree.png){width="100%"}
+![](../figures/05_pca_scree.png){width="100%"}
 :::
 ::::
 
@@ -111,36 +117,40 @@ principal component captures most of the shared variation among the scores.
 
 :::: {.columns}
 ::: {.column width="58%"}
-![](figures/06_pca_biplot.png){width="100%"}
+![](../figures/06_pca_biplot.png){width="100%"}
 :::
 ::: {.column width="42%"}
-- - **PC1 represents overall sensory quality:** all six attributes load positively, and coffees with higher PC1 scores tend to have higher Total Cup Points.
-- - **PC2 captures a weaker secondary contrast:** body and balance point in one direction, while aroma and flavor point in the opposite direction.
+- **PC1 = overall quality (horizontal):**  
+  all six arrows point right, so moving right means higher sensory scores across the board.  
+  The color gradient also shows that higher PC1 is associated with higher Total Cup Points.
+
+- **PC2 = weak style contrast (vertical):**  
+  body and balance point upward, while aroma, flavor, and aftertaste point downward.  
+  This mainly separates fuller-bodied coffees from more aroma-forward coffees.
 :::
 ::::
 
-## Component Loadings
 
-| Attribute | PC1 | PC2 |
-|-----------|-----|-----|
-| aroma | 0.81 | $-0.44$ |
-| flavor | 0.92 | $-0.15$ |
-| aftertaste | 0.91 | $-0.04$ |
-| acidity | 0.82 | $-0.03$ |
-| body | 0.80 | $+0.47$ |
-| balance | 0.85 | $+0.22$ |
+## Factor Analysis: Same Story as PCA
 
-**Interpretation:** The six sensory attributes mostly move together. PC1 captures overall quality, while PC2 reflects a smaller body/balance vs. aroma/flavor contrast.
+Factor analysis gives a similar conclusion to PCA: the six sensory scores are
+mostly driven by one common quality dimension.
 
-## Factor Analysis
+- A **one-factor model** explains about **67%** of the variance.
+- A **two-factor varimax solution** suggests a weak secondary split.
 
-- **One factor:** captures a general coffee quality dimension, consistent with PCA.
+| Attribute | Factor 1 | Factor 2 |
+|---|:--:|:--:|
+| aroma | **0.61** | 0.45 |
+| flavor | **0.87** | 0.45 |
+| aftertaste | **0.67** | 0.61 |
+| acidity | 0.57 | 0.52 |
+| body | 0.40 | **0.67** |
+| balance | 0.45 | **0.72** |
 
-- **Two factors with varimax rotation:** reveal a weaker secondary structure:
-  - **Flavor/aroma:** flavor, aftertaste, aroma
-  - **Body/structure:** balance, body, acidity
-
-- Factor analysis supports the PCA finding that coffee sensory scores are nearly one-dimensional.
+Factor 1 is more related to **flavor, aftertaste, and aroma**, while Factor 2 is
+more related to **body and balance**. Since several attributes load on both
+factors, the secondary split is weak.
 
 
 # RQ2: Origin differences
@@ -264,11 +274,11 @@ Data:
 
 :::: {.columns}
 ::: {.column width="50%"}
-![](../RQ3/figures/elbow_plot.png){width="100%"}
+![](../figures/011_elbow_plot.png){width="100%"}
 :::
 
 ::: {.column width="50%"}
-![](../RQ3/figures/silhouette_plot.png){width="100%"}
+![](../figures/012_silhouette_plot.png){width="100%"}
 :::
 ::::
 
@@ -281,7 +291,7 @@ Data:
 
 :::: {.columns}
 ::: {.column width="60%"}
-![](../RQ3/figures/cluster_plot.png){width="100%"}
+![](../figures/013_cluster_plot.png){width="100%"}
 :::
 
 ::: {.column width="40%"}
@@ -295,7 +305,7 @@ Data:
 
 :::: {.columns}
 ::: {.column width="55%"}
-![](../RQ3/figures/dendrogram_plot.png){width="100%"}
+![](../figures/014_dendrogram_plot.png){width="100%"}
 :::
 
 ::: {.column width="45%"}

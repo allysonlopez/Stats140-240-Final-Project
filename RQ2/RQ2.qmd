@@ -104,13 +104,20 @@ manual_colors <- c(
   "United.States..Hawaii."        = "#ff9896"
 )
 
-ggplot(lda_df, aes(x = LD1, y = LD2, color = country)) +
+coffee_lda_plot <- ggplot(lda_df, aes(x = LD1, y = LD2, color = country)) +
   geom_point(alpha = 0.6, size = 2) +
   stat_ellipse(level = 0.68) +
   labs(title = "LDA: Coffee Origins in Discriminant Space",
        x = "LD1", y = "LD2") +
   scale_color_manual(values = manual_colors, name = "Country of Origin") +
   theme_minimal()
+
+ggsave(
+  filename = "../figures/07_coffee_lda_plot.png",
+  plot = coffee_lda_plot,
+  width = 8,
+  height = 5,
+  dpi = 300)
 ```
 
 ```{r}
@@ -118,12 +125,19 @@ ggplot(lda_df, aes(x = LD1, y = LD2, color = country)) +
 loadings <- as.data.frame(lda_fit$scaling)
 loadings$variable <- rownames(loadings)
 
-ggplot(loadings, aes(x = LD1, y = LD2, label = variable)) +
+lda_loadings <- ggplot(loadings, aes(x = LD1, y = LD2, label = variable)) +
   geom_segment(aes(x = 0, y = 0, xend = LD1, yend = LD2),
                arrow = arrow(length = unit(0.2, "cm"))) +
   geom_text(nudge_y = 0.05) +
   labs(title = "LDA Loadings") +
   theme_minimal()
+
+ggsave(
+  filename = "../figures/09_lda_loadings.png",
+  plot = lda_loadings,
+  width = 8,
+  height = 5,
+  dpi = 300)
 ```
 
 ```{r}
@@ -146,7 +160,7 @@ ggplot(ve_df, aes(x = LD, y = variance)) +
 ```{r}
 ve_df$cumulative <- cumsum(var_explained)
 
-ggplot(ve_df, aes(x = factor(LD, levels = LD))) +
+lda_variance_explained <- ggplot(ve_df, aes(x = factor(LD, levels = LD))) +
   geom_col(aes(y = variance), fill = "#1f77b4", alpha = 0.7) +
   geom_line(aes(y = cumulative, group = 1), color = "darkred", linewidth = 1) +
   geom_point(aes(y = cumulative), color = "darkred", size = 2) +
@@ -155,6 +169,13 @@ ggplot(ve_df, aes(x = factor(LD, levels = LD))) +
   labs(title = "Variance Explained by Discriminant Axes",
        x = NULL, y = "Proportion of Variance") +
   theme_minimal()
+
+ggsave(
+  filename = "../figures/08_lda_variance_explained.png",
+  plot = lda_variance_explained,
+  width = 8,
+  height = 5,
+  dpi = 300)
 ```
 
 
@@ -219,13 +240,21 @@ ggplot(pr_long, aes(x = reorder(country, Value), y = Value, fill = Metric)) +
 ```{r}
 cm_df <- as.data.frame(cm$table)
 
-ggplot(cm_df, aes(x = Prediction, y = Reference, fill = Freq)) +
+confusion_matrix <- ggplot(cm_df, aes(x = Prediction, y = Reference, fill = Freq)) +
   geom_tile() +
   geom_text(aes(label = Freq), size = 2.5) +
   scale_fill_gradient(low = "white", high = "#1f77b4") +
   labs(title = "Confusion Matrix (10-Fold CV Predictions)") +
   theme_minimal() +
   theme(axis.text.x = element_text(angle = 45, hjust = 1))
+
+
+ggsave(
+  filename = "../figures/010_confusion_matrix.png",
+  plot = confusion_matrix,
+  width = 8,
+  height = 5,
+  dpi = 300)
 ```
 
 

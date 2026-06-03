@@ -47,7 +47,7 @@ elbow_plot <- fviz_nbclust(X, kmeans, method = "wss") +
     theme_minimal(base_size = 14)
 
 ggsave(
-  filename = "figures/elbow_plot.png",
+  filename = "../figures/011_elbow_plot.png",
   plot = elbow_plot,
   width = 8,
   height = 5,
@@ -68,7 +68,7 @@ silhouette_plot <- fviz_nbclust(X, kmeans, method = "silhouette") +
   theme_minimal(base_size = 14)
 
 ggsave(
-  filename = "figures/silhouette_plot.png",
+  filename = "../figures/012_silhouette_plot.png",
   plot = silhouette_plot,
   width = 8,
   height = 5,
@@ -104,7 +104,7 @@ cluster_plot <- fviz_cluster(
 )
 
 ggsave(
-  filename = "figures/cluster_plot.png",
+  filename = "../figures/013_cluster_plot.png",
   plot = cluster_plot,
   width = 8,
   height = 5,
@@ -175,7 +175,7 @@ coffee_cluster <- coffee_cluster %>%
   mutate(hier_cluster = factor(cutree(hc, k = 3)))
 
 ggsave(
-  filename = "figures/dendrogram_plot.png",
+  filename = "../figures/014_dendrogram_plot.png",
   plot = dendrogram_plot,
   width = 8,
   height = 5,

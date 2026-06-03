@@ -5,20 +5,21 @@
 library(tidyverse)
 library(psych)
 library(ggrepel)
-coffee <- read_csv("data/Stats140/coffee_clean.csv", show_col_types = FALSE)
+
 
 # 6 core sensory attributes. We EXCLUDE:
 # uniformity / clean_cup / sweetness  (near-constant at 10)
 # total_cup_points (it is the sum of the components)
 # cupper_points (holistic "overall" score, not an attribute)
 core <- c("aroma", "flavor", "aftertaste", "acidity", "body", "balance")
-X <- coffee |> select(all_of(core)) |> drop_na()
+X <- coffee %>%
+  dplyr::select(all_of(core)) %>%
+  drop_na()
 
 accent <- "#6F4E37"; fill2 <- "#C8A27C"
 theme_set(theme_minimal(base_size = 12) +
             theme(plot.title = element_text(face = "bold"),
                   panel.grid.minor = element_blank()))
-dir.create("figures", showWarnings = FALSE)
 
 # 1) Suitability checks 
 R <- cor(X)
@@ -72,6 +73,13 @@ p_scree <- tibble(PC = seq_along(ev), eigenvalue = ev, prop = evr) |>
        x = "principal component", y = "eigenvalue")
 
 p_scree
+
+ggsave(
+  filename = "figures/05_pca_scree.png",
+  plot = p_scree,
+  width = 8,
+  height = 5,
+  dpi = 300)
 
 # 4) Biplot coloured by Total Cup Points
 scores <- as_tibble(pca$x[, 1:2])
