@@ -145,9 +145,83 @@ principal component captures most of the shared variation among the scores.
 
 # RQ2: Origin differences
 
-# RQ3: Natural groupings
 
 
+# RQ3: Cluster Analysis
+
+## Do coffees naturally form groups?
+
+Goal:
+- Determine whether coffees form natural sensory clusters.
+- Compare clusters to known categories such as country of origin.
+
+Methods:
+- K-means clustering
+- Hierarchical clustering
+- Adjusted Rand Index (ARI)
+
+Data:
+- Six standardized sensory attributes:
+  - aroma
+  - flavor
+  - aftertaste
+  - acidity
+  - body
+  - balance
+  
+
+## Choosing the Number of Clusters
+
+:::: {.columns}
+::: {.column width="50%"}
+![](../RQ3/figures/elbow_plot.png){width="100%"}
+:::
+
+::: {.column width="50%"}
+![](../RQ3/figures/silhouette_plot.png){width="100%"}
+:::
+::::
+
+- The elbow plot suggested approximately 2–3 clusters.
+- The silhouette score was highest at k = 2.
+- We retained k = 3 to allow more detailed subgroup interpretation.
+
+
+## K-Means Cluster Visualization
+
+:::: {.columns}
+::: {.column width="60%"}
+![](../RQ3/figures/cluster_plot.png){width="100%"}
+:::
+
+::: {.column width="40%"}
+- Clusters showed moderate separation in the reduced PCA space.
+- Some overlap existed between groups, suggesting that coffee sensory profiles vary continuously rather than forming completely distinct categories.
+- The first two dimensions explained about 69% of total variation.
+:::
+::::
+
+## Hierarchical Clustering and Cluster Agreement
+
+:::: {.columns}
+::: {.column width="55%"}
+![](../RQ3/figures/dendrogram_plot.png){width="100%"}
+:::
+
+::: {.column width="45%"}
+
+### Adjusted Rand Index
+
+| Comparison | ARI |
+|---|---:|
+| Clusters vs Country | 0.046 |
+
+- The dendrogram supported the presence of multiple sensory groupings.
+- However, agreement between clusters and country labels was weak.
+- Coffees from different origins often shared similar sensory profiles.
+
+:::
+::::
 
 # Conclusions
 
@@ -159,6 +233,15 @@ principal component captures most of the shared variation among the scores.
   of the variation, with all six attributes loading strongly and positively.
 - A minor secondary axis (~8%) reflects **style** (aromatic vs full-bodied),
   not overall quality.
+
+
+# RQ3 Conclusions
+
+- Coffee sensory profiles showed evidence of natural groupings.
+- Approximately 2–3 clusters appeared reasonable.
+- Clusters were only weakly associated with country of origin.
+- This suggests that flavor characteristics overlap substantially across regions.
+- Sensory quality may vary more continuously than discrete geographic categories imply.
 
 ## Limitations
 

@@ -1,0 +1,186 @@
+---
+title: "RQ3 - Clustering"
+format: html
+editor: visual
+---
+
+## 
+
+```{r}
+library(tidyverse)
+library(cluster)
+library(factoextra)
+library(mclust)
+
+coffee <- read_csv(
+  "../data/coffee_clean.csv",
+  show_col_types = FALSE
+)
+
+#variables for clustering 
+score_vars <- c(
+  "aroma", "flavor", "aftertaste", "acidity", "body",
+  "balance", "uniformity", "clean_cup", "sweetness", "cupper_points"
+)
+
+#varaibles for anaylsis
+coffee_cluster <- coffee %>%
+  select(country_of_origin, processing_method, all_of(score_vars)) %>%
+  drop_na()
+
+
+#matrix for clustering
+#numeric variables and standarized 
+X <- coffee_cluster %>%
+  select(all_of(score_vars)) %>%
+  scale()
+```
+
+```{r}
+
+#with-in sum squares (measure compact clusters)
+elbow_plot <- fviz_nbclust(X, kmeans, method = "wss") +
+  labs(title = "Elbow Method",
+      x = "Number of Clusters (k)",
+      y = "Within-Cluster Sum of Squares"
+    ) +
+    theme_minimal(base_size = 14)
+
+ggsave(
+  filename = "figures/elbow_plot.png",
+  plot = elbow_plot,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+```
+
+The elbow plot suggested that between two and three clusters provided a reasonable balance between model simplicity and reduction in within-cluster variation. After k = 3, the decrease in WSS became more gradual, indicating diminishing improvement from additional clusters.
+
+```{r}
+#Silhouette plot (measure how similar points are in their own cluster and compare)
+silhouette_plot <- fviz_nbclust(X, kmeans, method = "silhouette") +
+  labs(
+    title = "Silhouette Analysis",
+    x = "Number of Clusters (k)",
+    y = "Average Silhouette Width"
+  ) +
+  theme_minimal(base_size = 14)
+
+ggsave(
+  filename = "figures/silhouette_plot.png",
+  plot = silhouette_plot,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+```
+
+The silhouette analysis indicated that two clusters produced the strongest separation between observations.
+
+However, three clusters were retained for further analysis because the silhouette value remained relatively high while providing more detailed subgroup structure for interpretation.
+
+```{r}
+set.seed(140)
+
+#k-means clustering function
+km3 <- kmeans(X, centers = 3, nstart = 25)
+
+#cluster assignment 
+coffee_cluster <- coffee_cluster %>%
+  mutate(kmeans_cluster = factor(km3$cluster))
+```
+
+```{r}
+#visualization of the clusters
+cluster_plot <- fviz_cluster(
+  km3,
+  data = X,
+  geom = "point",
+  ellipse.type = "norm",
+  palette = c("#6F4E37", "#C4A484", "#3E2723"),
+  ggtheme = theme_minimal(),
+  main = "K-Means Clustering of Coffee Sensory Profiles"
+)
+
+ggsave(
+  filename = "figures/cluster_plot.png",
+  plot = cluster_plot,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+
+```
+
+The cluster visualization showed moderate separation between the three groups. While some overlap existed between clusters, distinct regions were still visible in the reduced two-dimensional space. The first principal component explained 53% of the total variation, while the second explained 16%, indicating that most variability in the sensory profiles was captured in the visualization.
+
+```{r}
+#Contingency table 
+table(coffee_cluster$kmeans_cluster, coffee_cluster$processing_method)
+
+#calcs Adjusted Rand Index
+adjustedRandIndex(
+  coffee_cluster$kmeans_cluster,
+  coffee_cluster$processing_method
+)
+```
+
+```{r}
+#Top 8 countries with most coffee samples 
+top_countries <- coffee_cluster %>%
+  group_by(country_of_origin) %>%
+  summarise(n = n()) %>%
+  arrange(desc(n)) %>%
+  slice_head(n = 8) %>%
+  pull(country_of_origin)
+
+
+coffee_top <- coffee_cluster %>%
+  filter(country_of_origin %in% top_countries)
+
+#countries are distributed across clusters
+table(coffee_top$kmeans_cluster, coffee_top$country_of_origin)
+
+#measures how closely the clusters align with country #of origin
+adjustedRandIndex(
+  coffee_top$kmeans_cluster,
+  coffee_top$country_of_origin
+)
+```
+
+The adjusted Rand index between the clustering assignments and country labels was approximately 0.046, indicating weak agreement between the natural sensory groupings and country of origin. This suggests that coffees from different countries often shared similar sensory profiles, and origin alone did not strongly determine the cluster structure.
+
+```{r}
+
+#pairwise distances between coffees
+d <- dist(X)
+
+#hierarchical clustering 
+hc <- hclust(d, method = "ward.D2")
+
+#dendogram 
+dendrogram_plot <- fviz_dend(
+  hc,
+  k = 3,
+  show_labels = FALSE,
+  rect = TRUE,
+  rect_fill = TRUE,
+  palette = c("#6F4E37", "#C4A484", "#3E2723"),
+  main = "Hierarchical Clustering Dendrogram"
+)
+
+#3 clusters in dendogram
+coffee_cluster <- coffee_cluster %>%
+  mutate(hier_cluster = factor(cutree(hc, k = 3)))
+
+ggsave(
+  filename = "figures/dendrogram_plot.png",
+  plot = dendrogram_plot,
+  width = 8,
+  height = 5,
+  dpi = 300
+)
+```
+
+The hierarchical clustering dendrogram revealed several major branches, supporting the presence of multiple sensory groupings within the coffee data. The largest merges occurred at higher linkage heights, suggesting meaningful separation between the primary clusters.

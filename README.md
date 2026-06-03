@@ -20,4 +20,4 @@ We address three complementary questions :
   with cross-validated classification. *Lead:* [Name]
 - **RQ3 — Natural groupings.** Do data-driven clusters correspond to known
   categories (origin, processing method)? *Methods:* hierarchical
-  clustering, k-means; comparison via adjusted Rand index. *Lead:* [Name]
+  clustering, k-means; comparison via adjusted Rand index. *Lead:* [Allyson]
