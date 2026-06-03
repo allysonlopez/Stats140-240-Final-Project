@@ -145,7 +145,97 @@ principal component captures most of the shared variation among the scores.
 
 # RQ2: Origin differences
 
+## Is there a difference in coffee across different regions?
 
+**Goal**
+
+- Determine if coffee differs across the world
+- Can we predict where a coffee comes from based on its scoring for different categories?
+- Application: Coffee companies can decide whether region makes a difference in coffee taste
+
+**Methods**
+
+- MANOVA
+- LDA
+- 10-fold Cross Validation
+
+**Data**
+
+- Six standardized sensory attributes: aroma, flavor, aftertaste, acidity, body, balance
+- 11 different countries of origin
+
+## MANOVA
+- Tests whether there is any difference in the mean vectors for the 6 standardized attributes between the different countries of origin
+- $H_0$: $\mu_1$ = $\mu_2$ = ... = $\mu_{11}$
+
+| Test Statistic         | Value  | Approx F | Num df | Den df | p-value |
+|------------------------|--------|----------|--------|--------|---------|
+| Pillai's Trace         | 0.522  | 10.375   | 60     | 6528.0 | < .001  |
+| Wilks' Lambda          | 0.560  | 11.078   | 60     | 5679.2 | < .001  |
+| Hotelling-Lawley Trace | 0.649  | 11.688   | 60     | 6488.0 | < .001  |
+| Roy's Largest Root     | 0.356  | 38.694   | 10     | 1088.0 | < .001  |
+
+- There is statistically significant evidence that the groups differ based on country of origin
+- Pillai's Trace is the most appropriate test statistic for our analysis, due to its robustness and ability to handle non-homogenous covariance matrices
+
+## MANOVA (continued)
+
+| Response | F value | p-value |
+|----------|---------|---------|
+| Aroma | 12.724 | < 2.2e-16 |
+| Flavor | 19.76 | < 2.2e-16 |
+| Aftertaste | 29.729 | < 2.2e-16 |
+| Acidity | 23.473 | < 2.2e-16 |
+| Body | 22.748 | < 2.2e-16 |
+| Balance | 31.856 | < 2.2e-16 |
+
+- country of origin differentiates each factor at a statistically significant level
+- Balance and Aftertaste have the highest F values, indicating country of origin causes large differences in these features
+- even after performing Bonferonni correction, we see that every features is significantly significant
+  - Bonferonni correction: 0.05/6 = 0.0083
+
+## Linear Discriminant Analysis
+- We observe that there is evidence for coffee difference between countries
+- We use LDA to understand how separable the groups are based on country of origin
+
+:::: {.columns}
+::: {.column width="50%"}
+![](../figures/08_lda_var_explained.png){width="100%" height="100%"}
+:::
+::: {.column width="50%"}
+![](../figures/09_lda_loadings.png){width="100%"}
+:::
+::::
+
+- LD1 explains ~53% of variance, LD2 explains ~27% of variance 
+
+
+## Linear Discriminant Analysis (continued)
+
+![](../figures/07_coffee_lda_plot.png){width="100%"}
+
+## 10-fold Cross Validation
+- Utilize cross validation to determine accuracy of LDA, with holdout over the entire dataset
+- See large imbalance n classes leads to varied predictive accuracy per country
+
+:::: {.columns}
+::: {.column width="25%"}
+| Metric | Value |
+|--------|-------|
+| AUC | 0.712 |
+| prAUC | 0.218 |
+| Balanced Accuracy | 0.572 |
+| Mean Sensitivity | 0.215 |
+| Mean Specificity | 0.930 |
+| F1 | 0.347 |
+:::
+
+::: {.column width="73%"}
+![](../figures/010_confusion_matrix.png){width="100%"}
+:::
+::::
+
+[Removed null values when calculating F1 score ]{style="font-size:0.68em; color:#5f5f5f;"}
 
 # RQ3: Cluster Analysis
 
@@ -234,6 +324,12 @@ Data:
 - A minor secondary axis (~8%) reflects **style** (aromatic vs full-bodied),
   not overall quality.
 
+## R2 Conclustions
+- There appear to be statistically significant differences in sensory coffee profiles across different countries of origin
+- LDA is able to explain some separability between groups
+  - Simply using LD1 and LD2 may not be good enough due to similarity between many groups
+- Decent results for LDA after performing cross validation
+  - Large disparity in samples by country significantly affects the predictive ability of LDA
 
 # RQ3 Conclusions
 

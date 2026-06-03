@@ -11,6 +11,19 @@ library(psych)
 library(ggrepel)
 library(MLmetrics)
 coffee <- read_csv("../data/coffee_clean.csv", show_col_types = FALSE)
+core <- c("aroma", "flavor", "aftertaste", "acidity", "body", "balance", "country_of_origin")
+pred_core <- c("aroma", "flavor", "aftertaste", "acidity", "body", "balance")
+visualizing <- c("aroma", "flavor", "aftertaste", "acidity", "body", "balance", "country_of_origin", "total_cup_points")
+
+coffee_clean <- coffee %>%
+  dplyr::select(all_of(core)) %>% 
+  drop_na() %>% 
+  mutate(country_of_origin = factor(country_of_origin))
+
+coffee_visualizing <- coffee %>% 
+  dplyr::select(all_of(visualizing)) %>% 
+  drop_na() %>% 
+  mutate(country_of_origin = factor(country_of_origin))
 ```
 
 \newpage
@@ -18,27 +31,26 @@ coffee <- read_csv("../data/coffee_clean.csv", show_col_types = FALSE)
 ##
 
 ```{r}
-summary(coffee)
+summary(coffee_clean)
 
-head(coffee)
+head(coffee_clean)
 ```
 
 ```{r}
-coffee_counts <- coffee %>% 
+coffee_counts <- coffee_visualizing %>% 
   group_by(country_of_origin) %>% 
   summarise(n = n(), mean_points = mean(total_cup_points, na.rm=TRUE))
 
 ggplot(coffee_counts, aes(x = reorder(country_of_origin, n), y=n, fill=mean_points)) +
   geom_col() +
-  coord_flip()
+  coord_flip() +
+  labs(
+    title = "Coffee Cups Tested by Country",
+    fill = "Mean Cup Points"
+  ) +
+  xlab("Number of Cups") +
+  ylab("Country of Origin")
 ```
-
-```{r}
-cupping_vars <- c("aroma", "flavor", "aftertaste", "acidity",
-                  "body", "balance", "uniformity", "clean_cup",
-                  "sweetness", "cupper_points")
-```
-
 
 \newpage
 
@@ -46,12 +58,16 @@ cupping_vars <- c("aroma", "flavor", "aftertaste", "acidity",
 
 ```{r}
 # Fit MANOVA
-Y <- as.matrix(coffee[, cupping_vars])
-manova_fit <- manova(Y ~ country_of_origin, data = coffee)
+Y <- as.matrix(coffee_clean[, pred_core])
+manova_fit <- manova(Y ~ country_of_origin, data = coffee_clean)
 
 summary(manova_fit, test = "Pillai")
 
 summary(manova_fit, test = "Wilks")
+
+summary(manova_fit, test = "Hotelling-Lawley")
+
+summary(manova_fit, test = "Roy")
 
 summary.aov(manova_fit)
 ```
@@ -61,14 +77,6 @@ summary.aov(manova_fit)
 ## LDA
 
 ```{r}
-coffee_clean <- coffee %>%
-  dplyr::select(country_of_origin, all_of(cupping_vars)) %>%
-  drop_na() %>%
-  group_by(country_of_origin) %>%
-  filter(n() >= 20) %>%
-  ungroup() %>%
-  mutate(country_of_origin = factor(country_of_origin))
-
 # Fit LDA
 lda_fit <- lda(country_of_origin ~ ., data = coffee_clean)
 
@@ -82,13 +90,73 @@ lda_df <- data.frame(
   country = coffee_clean$country_of_origin
 )
 
+manual_colors <- c(
+  "Brazil"                        = "#1f77b4",
+  "Colombia"                      = "#ff7f0e",
+  "Costa.Rica"                    = "#2ca02c",
+  "Ethiopia"                      = "#d62728",
+  "Guatemala"                     = "#9467bd",
+  "Honduras"                      = "#8c564b",
+  "Mexico"                        = "#e377c2",
+  "Taiwan"                        = "#17becf",
+  "Tanzania..United.Republic.Of"  = "#bcbd22",
+  "Thailand"                      = "#000000",
+  "United.States..Hawaii."        = "#ff9896"
+)
+
 ggplot(lda_df, aes(x = LD1, y = LD2, color = country)) +
   geom_point(alpha = 0.6, size = 2) +
   stat_ellipse(level = 0.68) +
   labs(title = "LDA: Coffee Origins in Discriminant Space",
        x = "LD1", y = "LD2") +
+  scale_color_manual(values = manual_colors, name = "Country of Origin") +
   theme_minimal()
 ```
+
+```{r}
+# Loadings plot
+loadings <- as.data.frame(lda_fit$scaling)
+loadings$variable <- rownames(loadings)
+
+ggplot(loadings, aes(x = LD1, y = LD2, label = variable)) +
+  geom_segment(aes(x = 0, y = 0, xend = LD1, yend = LD2),
+               arrow = arrow(length = unit(0.2, "cm"))) +
+  geom_text(nudge_y = 0.05) +
+  labs(title = "LDA Loadings") +
+  theme_minimal()
+```
+
+```{r}
+# Variance explained plot
+
+var_explained <- lda_fit$svd^2 / sum(lda_fit$svd^2)
+ve_df <- data.frame(
+  LD = paste0("LD", seq_along(var_explained)),
+  variance = var_explained
+)
+
+ggplot(ve_df, aes(x = LD, y = variance)) +
+  geom_col(fill = "#1f77b4") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(title = "Variance Explained by Discriminant Axes",
+       y = "Proportion of Variance") +
+  theme_minimal()
+```
+
+```{r}
+ve_df$cumulative <- cumsum(var_explained)
+
+ggplot(ve_df, aes(x = factor(LD, levels = LD))) +
+  geom_col(aes(y = variance), fill = "#1f77b4", alpha = 0.7) +
+  geom_line(aes(y = cumulative, group = 1), color = "darkred", linewidth = 1) +
+  geom_point(aes(y = cumulative), color = "darkred", size = 2) +
+  geom_hline(yintercept = 0.90, linetype = "dashed", color = "gray50") +
+  scale_y_continuous(labels = scales::percent) +
+  labs(title = "Variance Explained by Discriminant Axes",
+       x = NULL, y = "Proportion of Variance") +
+  theme_minimal()
+```
+
 
 ```{r}
 coffee_clean <- coffee_clean %>%
@@ -97,7 +165,8 @@ coffee_clean <- coffee_clean %>%
 set.seed(42)
 ctrl <- trainControl(method = "cv", number = 10,
                      classProbs = TRUE,
-                     summaryFunction = multiClassSummary)
+                     summaryFunction = multiClassSummary,
+                     savePredictions = TRUE)  # change "final" to TRUE
 
 lda_caret <- train(country_of_origin ~ .,
                    data = coffee_clean,
@@ -105,7 +174,83 @@ lda_caret <- train(country_of_origin ~ .,
                    trControl = ctrl,
                    preProcess = c("center", "scale"))
 
+true_levels <- levels(coffee_clean$country_of_origin)
+preds <- factor(lda_caret$pred$pred, levels = true_levels)
+obs   <- factor(lda_caret$pred$obs,  levels = true_levels)
+
+cm <- confusionMatrix(preds, obs)
+cm$byClass[, c("Precision", "Recall", "F1")] %>%
+  colMeans(na.rm = TRUE)
+```
+```{r}
 print(lda_caret)
 lda_caret$results
 ```
 
+```{r}
+fold_results <- lda_caret$resample
+
+ggplot(fold_results, aes(x = Resample, y = Accuracy)) +
+  geom_col(fill = "#1f77b4", alpha = 0.8) +
+  geom_hline(yintercept = mean(fold_results$Accuracy), 
+             linetype = "dashed", color = "red") +
+  labs(title = "Accuracy per CV Fold",
+       x = "Fold", y = "Accuracy") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+```{r}
+pr_df <- as.data.frame(cm$byClass[, c("Precision", "Recall", "F1")])
+pr_df$country <- gsub("Class: ", "", rownames(pr_df))
+
+pr_long <- tidyr::pivot_longer(pr_df, cols = c(Precision, Recall, F1),
+                                names_to = "Metric", values_to = "Value")
+
+ggplot(pr_long, aes(x = reorder(country, Value), y = Value, fill = Metric)) +
+  geom_col(position = "dodge") +
+  coord_flip() +
+  scale_fill_brewer(palette = "Set2") +
+  labs(title = "Per-Class Precision, Recall, F1",
+       x = "Country", y = "Score") +
+  theme_minimal()
+```
+
+```{r}
+cm_df <- as.data.frame(cm$table)
+
+ggplot(cm_df, aes(x = Prediction, y = Reference, fill = Freq)) +
+  geom_tile() +
+  geom_text(aes(label = Freq), size = 2.5) +
+  scale_fill_gradient(low = "white", high = "#1f77b4") +
+  labs(title = "Confusion Matrix (10-Fold CV Predictions)") +
+  theme_minimal() +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
+```
+
+
+## Presentation
+
+### Question
+- Can we predict the country of origin of coffee based on its sensory characteristics?
+- Helps us determine if the region causes a difference in the taste of the coffee
+- Something useful for coffee brands/distributors when determining where to get their coffee
+- Utilize aroma, flavor, aftertaste, acidity, body, balance to determine the country of origin
+
+### MANOVA
+- compares the group means, determines if they differ at all
+- Null hypothesis: are the group means of all the groups the same?
+- Utilize 4 test statistics: Wilks' Lambda, Pillai's Trace, Hotelling-Lawlay, Roy's Largest Root
+  - Likely see that Pillai's Trace will be best for the data because the covariance is likely not the same between the groups
+  
+### MANOVA Results
+
+### LDA
+- We see that the groups differ because of the MANOVA results
+- LDA helps us illustrate the difference between the groups, and how separable the groups are
+- LDA works well because we are utilizing continuous data
+
+### LDA Results
+
+### Cross Validation Performance
+- CV is good because it allows us to see how LDA works on unseen data, with 10 fold doing it well for the entire dataset
