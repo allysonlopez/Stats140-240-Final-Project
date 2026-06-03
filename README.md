@@ -17,7 +17,7 @@ We address three complementary questions :
 - **RQ2 — Origin differences.** Do coffees from different countries have
   distinguishable sensory profiles, and how well can origin be predicted
   from the cupping vector? *Methods:* MANOVA, linear discriminant analysis
-  with cross-validated classification. *Lead:* [Name]
+  with cross-validated classification. *Lead:* [Arnav]
 - **RQ3 — Natural groupings.** Do data-driven clusters correspond to known
   categories (origin, processing method)? *Methods:* hierarchical
   clustering, k-means; comparison via adjusted Rand index. *Lead:* [Allyson]
