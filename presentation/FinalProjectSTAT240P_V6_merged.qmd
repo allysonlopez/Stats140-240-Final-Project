@@ -1,0 +1,264 @@
+---
+title: "Coffee Quality Analysis"
+subtitle: "Multivariate Structure of Professional Cupping Scores"
+author: "Allyson Lopez, Xinyu Zhang, Arnav Kanekar"
+date: "2026-06-03"
+format:
+  revealjs:
+    theme: [simple, custom.scss]
+    slide-number: true
+    incremental: false
+    fig-align: center
+    embed-resources: true
+    center : true
+editor: source
+---
+
+# Introduction
+
+## Motivation
+
+- Specialty coffee is scored by certified Q-graders on six sensory attributes:
+  **aroma, flavor, aftertaste, acidity, body, balance**.
+- These expert scores directly affect a coffee's price and market value.
+- We use multivariate methods to understand the structure behind the scores and
+  how coffees relate to one another.
+
+## Research Questions
+
+| | Question | Methods |
+|---|----------|---------|
+| **RQ1** | What latent dimensions underlie cupping scores? | PCA, factor analysis |
+| **RQ2** | Do coffee origins differ in their sensory profiles? | MANOVA, LDA |
+| **RQ3** | Do clusters match known categories? | cluster analysis |
+
+
+# Data
+
+## The Data
+  
+- **Source:** Coffee Quality Institute (CQI), via the public *Coffee Quality
+  Database*.
+- **Observations:** Arabica coffee samples evaluated by professional cuppers.
+- **Main variables:** six sensory attributes scored on a 0–10 scale:
+  aroma, flavor, aftertaste, acidity, body, and balance.
+- **Metadata:** country of origin, region, variety, processing method, and altitude.
+
+## Data Cleaning
+
+- Removed one corrupt record and rows with missing sensory scores.
+- Kept countries with at least 30 samples to avoid extremely small origin groups.
+- Removed uniformity, clean cup, and sweetness because they were almost always 10
+  and contributed little variation.
+
+Result: **1,099 Arabica coffees across 11 countries**, analyzed using six
+sensory attributes.
+
+# Exploratory Analysis
+
+## Sample Sizes and Scores
+
+:::: {.columns}
+::: {.column width="50%"}
+![](figures/01_country_counts.png){width="100%"}
+:::
+::: {.column width="50%"}
+![](figures/02_score_dist.png){width="100%"}
+:::
+::::
+
+- Sample sizes are imbalanced (Mexico 236, Thailand 32).
+- Total Cup Points are centered around 82, with most coffees between 80–85 and a small left tail of lower-scoring samples.
+
+## Correlation Structure
+
+:::: {.columns}
+::: {.column width="55%"}
+![](figures/03_corr_heatmap.png){width="100%"}
+:::
+::: {.column width="45%"}
+- All six attributes are positively correlated (r between 0.54 and 0.85).
+- A coffee scoring well on one attribute tends to score well on the others.
+- This shared variation motivates **principal component analysis**.
+:::
+::::
+
+# RQ1: Principal Component Analysis
+
+## Variance Explained: One Dominant Quality Dimension
+
+PCA was applied to the six standardized sensory attributes.
+
+[The data were appropriate for dimension reduction: KMO = 0.906 and Bartlett's test p < 0.001.]{style="font-size:0.68em; color:#5f5f5f;"}
+
+:::: {.columns}
+::: {.column width="44%"}
+| PC | $\lambda$ | % Var | Cum % |
+|:--|:--:|:--:|:--:|
+| PC1 | 4.36 | **72.6** | 72.6 |
+| PC2 | 0.49 | 8.1 | 80.8 |
+| PC3 | 0.39 | 6.6 | 87.3 |
+| PC4 | 0.36 | 6.1 | 93.4 |
+
+<br>
+
+- PC1 explains **72.6%** of the total variation.
+- Only PC1 has an eigenvalue greater than 1.
+- This suggests that the six sensory attributes are largely driven by one shared
+  dimension: **overall coffee quality**.
+:::
+::: {.column width="56%"}
+![](figures/05_pca_scree.png){width="100%"}
+:::
+::::
+
+## PCA Biplot
+
+:::: {.columns}
+::: {.column width="58%"}
+![](figures/06_pca_biplot.png){width="100%"}
+:::
+::: {.column width="42%"}
+- **PC1 = overall quality (horizontal):**  
+  all six arrows point right, so moving right means higher sensory scores across the board.  
+  The color gradient also shows that higher PC1 is associated with higher Total Cup Points.
+
+- **PC2 = weak style contrast (vertical):**  
+  body and balance point upward, while aroma, flavor, and aftertaste point downward.  
+  This mainly separates fuller-bodied coffees from more aroma-forward coffees.
+:::
+::::
+
+## Factor Analysis: Same Story as PCA
+
+Factor analysis gives a similar conclusion to PCA: the six sensory scores are
+mostly driven by one common quality dimension.
+
+- A **one-factor model** explains about **67%** of the variance.
+- A **two-factor varimax solution** suggests a weak secondary split.
+
+| Attribute | Factor 1 | Factor 2 |
+|---|:--:|:--:|
+| aroma | **0.61** | 0.45 |
+| flavor | **0.87** | 0.45 |
+| aftertaste | **0.67** | 0.61 |
+| acidity | 0.57 | 0.52 |
+| body | 0.40 | **0.67** |
+| balance | 0.45 | **0.72** |
+
+Factor 1 is more related to **flavor, aftertaste, and aroma**, while Factor 2 is
+more related to **body and balance**. Since several attributes load on both
+factors, the secondary split is weak.
+
+# RQ2: Origin differences
+
+
+
+# RQ3: Cluster Analysis
+
+## Do coffees naturally form groups?
+
+Goal:
+
+- Determine whether coffees form natural sensory clusters.
+- Compare clusters to known categories such as country of origin.
+
+Methods:
+
+- K-means clustering
+- Hierarchical clustering
+- Adjusted Rand Index (ARI)
+
+Data:
+
+- Six standardized sensory attributes: aroma, flavor, aftertaste, acidity,
+  body, balance.
+
+## Choosing the Number of Clusters
+
+:::: {.columns}
+::: {.column width="50%"}
+![](figures/elbow_plot.png){width="100%"}
+:::
+
+::: {.column width="50%"}
+![](figures/silhouette_plot.png){width="100%"}
+:::
+::::
+
+- The elbow plot suggested approximately 2–3 clusters.
+- The silhouette score was highest at k = 2.
+- We retained k = 3 to allow more detailed subgroup interpretation.
+
+
+## K-Means Cluster Visualization
+
+:::: {.columns}
+::: {.column width="60%"}
+![](figures/cluster_plot.png){width="100%"}
+:::
+
+::: {.column width="40%"}
+- Clusters showed moderate separation in the reduced PCA space.
+- Some overlap existed between groups, suggesting that coffee sensory profiles vary continuously rather than forming completely distinct categories.
+- The first two dimensions explained about 69% of total variation.
+:::
+::::
+
+## Hierarchical Clustering and Cluster Agreement
+
+:::: {.columns}
+::: {.column width="55%"}
+![](figures/dendrogram_plot.png){width="100%"}
+:::
+
+::: {.column width="45%"}
+
+### Adjusted Rand Index
+
+| Comparison | ARI |
+|---|---:|
+| Clusters vs Country | 0.046 |
+
+- The dendrogram supported the presence of multiple sensory groupings.
+- However, agreement between clusters and country labels was weak.
+- Coffees from different origins often shared similar sensory profiles.
+
+:::
+::::
+
+# Conclusions
+
+## Conclusions
+
+- The sensory data is well-suited to dimension reduction (KMO = 0.906;
+  Bartlett $p < 0.001$).
+- Coffee sensory quality is **essentially one-dimensional**: PC1 captures ~73%
+  of the variation, with all six attributes loading strongly and positively.
+- A minor secondary axis (~8%) reflects **style** (aromatic vs full-bodied),
+  not overall quality.
+
+## RQ3 Conclusions
+
+- Coffee sensory profiles showed evidence of natural groupings.
+- Approximately 2–3 clusters appeared reasonable.
+- Clusters were only weakly associated with country of origin.
+- This suggests that flavor characteristics overlap substantially across regions.
+- Sensory quality may vary more continuously than discrete geographic categories imply.
+
+## Limitations
+
+- Imbalanced sample sizes across countries.
+- Selection bias: CQI-submitted coffees skew high quality (scores cluster
+  80–85).
+- Halo effect: a grader's overall impression may bleed into every sub-score.
+- Arabica only; Robusta excluded (28 samples).
+
+
+## References
+
+- Coffee Quality Institute, *Coffee Quality Database* (jldbc mirror).
+- Project code: `github.com/allysonlopez/Stats140-240-Final-Project`.
+
+## Thank you. 
+**Questions?**
