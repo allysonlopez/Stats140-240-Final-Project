@@ -61,6 +61,10 @@ sensory attributes.
 :::: {.columns}
 ::: {.column width="50%"}
 ![](../figures/01_country_counts.png){width="100%"}
+- Mexico, Colombia, and Guatemala had the largest number of coffee samples.
+- Several countries had much smaller sample sizes.
+- This imbalance is important because countries with more observations may have a stronger influence on multivariate analyses and clustering results.
+
 :::
 ::: {.column width="50%"}
 ![](../figures/02_score_dist.png){width="100%"}
@@ -210,7 +214,7 @@ factors, the secondary split is weak.
 
 :::: {.columns}
 ::: {.column width="50%"}
-![](../figures/08_lda_var_explained.png){width="100%" height="100%"}
+![](../figures/08_lda_variance_explained.png){width="100%" height="100%"}
 :::
 ::: {.column width="50%"}
 ![](../figures/09_lda_loadings.png){width="100%"}
